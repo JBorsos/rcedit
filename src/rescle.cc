@@ -532,6 +532,51 @@ bool ResourceUpdater::SetFileVersion(unsigned short v1, unsigned short v2, unsig
   return SetFileVersion(langId, 1, v1, v2, v3, v4);
 }
 
+bool ResourceUpdater::SetFileFlags(WORD languageId, UINT id, DWORD flags) {
+  VersionInfo& versionInfo = versionStampMap_[languageId];
+  if (!versionInfo.HasFixedFileInfo()) {
+    return false;
+  }
+
+  VS_FIXEDFILEINFO& root = versionInfo.GetFixedFileInfo();
+
+  root.dwFileFlags = flags;
+  if (root.dwFileFlagsMask != 0) {
+    root.dwFileFlags &= root.dwFileFlagsMask;
+  }
+  return true;
+}
+
+bool ResourceUpdater::SetFileFlags(DWORD flags) {
+  LANGID langId = versionStampMap_.empty() ? kLangEnUs
+                                           : versionStampMap_.begin()->first;
+  return SetFileFlags(langId, 1, flags);
+}
+
+bool ResourceUpdater::GetFileFlags(WORD languageId, UINT id, DWORD* flags) {
+  auto versionStamp = versionStampMap_.find(languageId);
+  if (versionStamp == versionStampMap_.end()) {
+    return false;
+  }
+
+  const VersionInfo& versionInfo = versionStamp->second;
+  if (!versionInfo.HasFixedFileInfo()) {
+    return false;
+  }
+
+  *flags = versionInfo.GetFixedFileInfo().dwFileFlags;
+  return true;
+}
+
+bool ResourceUpdater::GetFileFlags(DWORD* flags) {
+  if (versionStampMap_.empty()) {
+    return false;
+  }
+
+  LANGID langId = versionStampMap_.begin()->first;
+  return GetFileFlags(langId, 1, flags);
+}
+
 bool ResourceUpdater::ChangeString(WORD languageId, UINT id, const WCHAR* value) {
   StringTable& table = stringTableMap_[languageId];
 

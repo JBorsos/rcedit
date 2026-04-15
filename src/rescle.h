@@ -132,6 +132,10 @@ class ResourceUpdater {
   bool SetProductVersion(unsigned short v1, unsigned short v2, unsigned short v3, unsigned short v4);
   bool SetFileVersion(WORD languageId, UINT id, unsigned short v1, unsigned short v2, unsigned short v3, unsigned short v4);
   bool SetFileVersion(unsigned short v1, unsigned short v2, unsigned short v3, unsigned short v4);
+  bool SetFileFlags(WORD languageId, UINT id, DWORD flags);
+  bool SetFileFlags(DWORD flags);
+  bool GetFileFlags(WORD languageId, UINT id, DWORD* flags);
+  bool GetFileFlags(DWORD* flags);
   bool ChangeString(WORD languageId, UINT id, const WCHAR* value);
   bool ChangeString(UINT id, const WCHAR* value);
   bool ChangeRcData(UINT id, const WCHAR* pathToResource);

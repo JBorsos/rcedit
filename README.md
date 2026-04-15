@@ -46,6 +46,18 @@ Set product version:
 $ rcedit "path-to-exe-or-dll" --set-product-version "10.7"
 ```
 
+Set file flags (`VS_FIXEDFILEINFO.dwFileFlags`):
+
+```bash
+$ rcedit "path-to-exe-or-dll" --set-file-flags 0x1
+```
+
+Get file flags (`VS_FIXEDFILEINFO.dwFileFlags`):
+
+```bash
+$ rcedit "path-to-exe-or-dll" --get-file-flags
+```
+
 Set icon:
 
 ```bash

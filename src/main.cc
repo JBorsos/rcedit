@@ -50,6 +50,8 @@ void print_help(VS_FIXEDFILEINFO* file_info) {
 "  --set-version-string <key> <value>         Set version string\n"
 "  --get-version-string <key>                 Print version string\n"
 "  --set-file-version <version>               Set FileVersion\n"
+"  --set-file-flags <flags>                   Set VS_FIXEDFILEINFO FileFlags\n"
+"  --get-file-flags                           Print VS_FIXEDFILEINFO FileFlags\n"
 "  --set-product-version <version>            Set ProductVersion\n"
 "  --set-icon <path-to-icon>                  Set file icon\n"
 "  --set-requested-execution-level <level>    Pass nothing to see usage\n"
@@ -78,6 +80,16 @@ bool parse_version_string(const wchar_t* str, unsigned short *v1, unsigned short
          (swscanf_s(str, L"%hu.%hu.%hu", v1, v2, v3) == 3) ||
          (swscanf_s(str, L"%hu.%hu", v1, v2) == 2) ||
          (swscanf_s(str, L"%hu", v1) == 1);
+}
+
+bool parse_uint32(const wchar_t* str, DWORD* value) {
+  wchar_t* end = nullptr;
+  unsigned long parsed = wcstoul(str, &end, 0);
+  if (*str == L'\0' || *end != L'\0')
+    return false;
+
+  *value = static_cast<DWORD>(parsed);
+  return true;
 }
 
 }  // namespace
@@ -139,6 +151,27 @@ int wmain(int argc, const wchar_t* argv[]) {
       if (!updater.SetVersionString(L"FileVersion", argv[i]))
         return print_error("Unable to change FileVersion string");
 
+    } else if (wcscmp(argv[i], L"--set-file-flags") == 0 ||
+               wcscmp(argv[i], L"-sff") == 0) {
+      if (argc - i < 2)
+        return print_error("--set-file-flags requires a numeric value");
+
+      DWORD flags = 0;
+      if (!parse_uint32(argv[++i], &flags))
+        return print_error("Unable to parse file flags (use decimal or 0x-prefixed hex)");
+
+      if (!updater.SetFileFlags(flags))
+        return print_error("Unable to change file flags");
+
+    } else if (wcscmp(argv[i], L"--get-file-flags") == 0 ||
+               wcscmp(argv[i], L"-gff") == 0) {
+      DWORD flags = 0;
+      if (!updater.GetFileFlags(&flags))
+        return print_error("Unable to get file flags");
+
+      fwprintf(stdout, L"0x%08lX", static_cast<unsigned long>(flags));
+      return 0;  // no changes made
+
     } else if (wcscmp(argv[i], L"--set-product-version") == 0 ||
                wcscmp(argv[i], L"-spv") == 0) {
       if (argc - i < 2)
@@ -163,7 +196,7 @@ int wmain(int argc, const wchar_t* argv[]) {
         return print_error("Unable to set icon");
 
     } else if (wcscmp(argv[i], L"--set-requested-execution-level") == 0 ||
-      wcscmp(argv[i], L"-srel") == 0) {
+               wcscmp(argv[i], L"-srel") == 0) {
       if (argc - i < 2)
         return print_error("--set-requested-execution-level requires asInvoker, highestAvailable or requireAdministrator");
 
@@ -174,7 +207,7 @@ int wmain(int argc, const wchar_t* argv[]) {
         return print_error("Unable to set execution level");
 
     } else if (wcscmp(argv[i], L"--application-manifest") == 0 ||
-      wcscmp(argv[i], L"-am") == 0) {
+               wcscmp(argv[i], L"-am") == 0) {
       if (argc - i < 2)
         return print_error("--application-manifest requires local path");
 
@@ -185,7 +218,7 @@ int wmain(int argc, const wchar_t* argv[]) {
         return print_error("Unable to set application manifest");
 
     } else if (wcscmp(argv[i], L"--set-resource-string") == 0 ||
-      wcscmp(argv[i], L"--srs") == 0) {
+               wcscmp(argv[i], L"--srs") == 0) {
       if (argc - i < 3)
         return print_error("--set-resource-string requires int 'Key' and string 'Value'");
 
@@ -211,7 +244,7 @@ int wmain(int argc, const wchar_t* argv[]) {
       if (!updater.ChangeRcData(key_id, pathToResource))
         return print_error("Unable to change RCDATA");
     } else if (wcscmp(argv[i], L"--get-resource-string") == 0 ||
-      wcscmp(argv[i], L"-grs") == 0) {
+               wcscmp(argv[i], L"-grs") == 0) {
       if (argc - i < 2)
         return print_error("--get-resource-string requires int 'Key'");
 
